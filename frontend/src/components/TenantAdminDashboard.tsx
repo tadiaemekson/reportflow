@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
-import { Users, Trash2, AlertTriangle, Loader2, Check, UserPlus } from 'lucide-react';
+import { Users, Trash2, AlertTriangle, Loader2, Check, UserPlus, X } from 'lucide-react';
 
 export default function TenantAdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
@@ -14,6 +14,10 @@ export default function TenantAdminDashboard() {
   const [isRegisteringUser, setIsRegisteringUser] = useState(false);
   const [registerUserError, setRegisterUserError] = useState('');
   const [registerUserSuccess, setRegisterUserSuccess] = useState<any | null>(null);
+
+  // Delete User State
+  const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -65,14 +69,21 @@ export default function TenantAdminDashboard() {
     }
   };
 
-  const handleDeleteUser = async (id: string, name: string) => {
-    if (confirm(`Voulez-vous vraiment supprimer l'utilisateur "${name}" ? Cette action supprimera également ses activités et rapports.`)) {
-      try {
-        await api.delete(`/users/${id}`);
-        fetchUsers();
-      } catch (error: any) {
-        alert(error.response?.data?.error || "Erreur lors de la suppression.");
-      }
+  const handleDeleteUserClick = (id: string, name: string) => {
+    setUserToDelete({ id, name });
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/users/${userToDelete.id}`);
+      fetchUsers();
+      setUserToDelete(null);
+    } catch (error: any) {
+      alert(error.response?.data?.error || "Erreur lors de la suppression.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -112,7 +123,7 @@ export default function TenantAdminDashboard() {
                     </div>
                   </div>
                   
-                  <button onClick={() => handleDeleteUser(user.id, user.name)} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800">
+                  <button onClick={() => handleDeleteUserClick(user.id, user.name)} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-950/40">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -223,6 +234,53 @@ export default function TenantAdminDashboard() {
           </form>
         </div>
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 text-red-400">
+                <AlertTriangle className="h-8 w-8" />
+              </div>
+              
+              <h3 className="text-xl font-bold text-slate-100 mb-2">Supprimer l'utilisateur ?</h3>
+              
+              <p className="text-sm text-slate-400 mb-6">
+                Êtes-vous sûr de vouloir supprimer définitivement <span className="text-slate-200 font-bold">"{userToDelete.name}"</span> ? 
+                <br /><br />
+                <span className="text-red-400/80 text-xs">Cette action est irréversible. Tous ses rapports et activités associés seront également effacés du système.</span>
+              </p>
+              
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setUserToDelete(null)}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmDeleteUser}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-600/90 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Oui, Supprimer'}
+                </button>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setUserToDelete(null)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-300"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
