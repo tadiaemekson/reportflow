@@ -13,9 +13,9 @@ export default function TenantAdminDashboard() {
   const [newUserRole, setNewUserRole] = useState('DELEGATE');
   const [isRegisteringUser, setIsRegisteringUser] = useState(false);
   const [registerUserError, setRegisterUserError] = useState('');
-  const [registerUserSuccess, setRegisterUserSuccess] = useState<any | null>(null);
 
-  // Delete User State
+  // Modals States
+  const [successModal, setSuccessModal] = useState<{title: string, message: string} | null>(null);
   const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -43,27 +43,29 @@ export default function TenantAdminDashboard() {
 
     setIsRegisteringUser(true);
     setRegisterUserError('');
-    setRegisterUserSuccess(null);
 
     try {
       const response = await api.post('/users', {
         name: newUserName,
         email: newUserEmail,
         password: newUserPassword,
-        role: newUserRole,
+        role: newUserRole
       });
 
-      setRegisterUserSuccess(response.data);
+      setSuccessModal({
+        title: "Membre ajouté avec succès",
+        message: response.data.message || `L'utilisateur ${newUserName} a été ajouté à votre équipe.`
+      });
+      
       setNewUserName('');
       setNewUserEmail('');
       setNewUserPassword('Personnel#2026!');
       setNewUserRole('DELEGATE');
       
-      // Refresh list
       fetchUsers();
     } catch (error: any) {
       console.error(error);
-      setRegisterUserError(error.response?.data?.message || error.response?.data?.error || "Une erreur est survenue lors de l'enregistrement de l'utilisateur.");
+      setRegisterUserError(error.response?.data?.message || error.response?.data?.error || "Erreur lors de la création.");
     } finally {
       setIsRegisteringUser(false);
     }
@@ -79,6 +81,10 @@ export default function TenantAdminDashboard() {
     try {
       await api.delete(`/users/${userToDelete.id}`);
       fetchUsers();
+      setSuccessModal({
+        title: "Accès révoqué",
+        message: `L'accès pour "${userToDelete.name}" a été définitivement supprimé.`
+      });
       setUserToDelete(null);
     } catch (error: any) {
       alert(error.response?.data?.error || "Erreur lors de la suppression.");
@@ -208,18 +214,9 @@ export default function TenantAdminDashboard() {
             </div>
 
             {registerUserError && (
-              <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
+              <div className="mt-4 text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
                 <span>{registerUserError}</span>
-              </div>
-            )}
-
-            {registerUserSuccess && (
-              <div className="text-emerald-400 text-xs bg-emerald-950/40 border border-emerald-900/50 p-4 rounded-xl space-y-2">
-                <div className="flex items-center gap-2 font-bold">
-                  <Check className="h-4.5 w-4.5" />
-                  <span>{registerUserSuccess.message}</span>
-                </div>
               </div>
             )}
 
@@ -278,6 +275,33 @@ export default function TenantAdminDashboard() {
             >
               <X className="h-5 w-5" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Global Success Modal */}
+      {successModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-5 border border-emerald-500/20 text-emerald-400">
+                <Check className="h-8 w-8" />
+              </div>
+              
+              <h3 className="text-xl font-bold text-slate-100 mb-2">{successModal.title}</h3>
+              <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+                {successModal.message}
+              </p>
+              
+              <button
+                onClick={() => setSuccessModal(null)}
+                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold transition-all border border-slate-700"
+              >
+                Super, merci !
+              </button>
+            </div>
           </div>
         </div>
       )}

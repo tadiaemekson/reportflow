@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
-import { Shield, Users, Activity, FileText, Trash2, Edit, AlertTriangle, Loader2, Check, ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { Shield, Users, Activity, FileText, Trash2, Edit, AlertTriangle, Loader2, Check, ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -17,7 +17,12 @@ export default function SuperAdminDashboard() {
   const [newTenantAdminPassword, setNewTenantAdminPassword] = useState('TempPassword#2026!');
   const [isRegisteringTenant, setIsRegisteringTenant] = useState(false);
   const [registerTenantError, setRegisterTenantError] = useState('');
-  const [registerTenantSuccess, setRegisterTenantSuccess] = useState<any | null>(null);
+
+  // Modals States
+  const [successModal, setSuccessModal] = useState<{title: string, message: string} | null>(null);
+  const [tenantToDelete, setTenantToDelete] = useState<{id: string, name: string} | null>(null);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchTenants = async () => {
     try {
@@ -43,7 +48,6 @@ export default function SuperAdminDashboard() {
 
     setIsRegisteringTenant(true);
     setRegisterTenantError('');
-    setRegisterTenantSuccess(null);
 
     try {
       const response = await api.post('/admin/tenants', {
@@ -55,13 +59,18 @@ export default function SuperAdminDashboard() {
         admin_password: newTenantAdminPassword,
       });
 
-      setRegisterTenantSuccess(response.data);
+      setSuccessModal({
+        title: "Organisation créée avec succès",
+        message: response.data.message || `L'organisation ${newTenantName} a été enregistrée.`
+      });
+      
       setNewTenantName('');
       setNewTenantSlug('');
       setNewTenantLogoUrl('');
       setNewTenantAdminName('');
       setNewTenantAdminEmail('');
       setNewTenantAdminPassword('TempPassword#2026!');
+      setIsRegisterFormOpen(false); // Hide the form on success
       
       // Refresh list
       fetchTenants();
@@ -73,14 +82,26 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const handleDeleteTenant = async (id: string, name: string) => {
-    if (confirm(`Voulez-vous vraiment supprimer l'organisation "${name}" ? Cette action est irréversible et supprimera toutes ses données.`)) {
-      try {
-        await api.delete(`/admin/tenants/${id}`);
-        fetchTenants();
-      } catch (error: any) {
-        alert(error.response?.data?.error || "Erreur lors de la suppression.");
-      }
+  const handleDeleteTenantClick = (id: string, name: string) => {
+    setTenantToDelete({ id, name });
+    setDeleteConfirmationText('');
+  };
+
+  const confirmDeleteTenant = async () => {
+    if (!tenantToDelete || deleteConfirmationText !== tenantToDelete.name) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/admin/tenants/${tenantToDelete.id}`);
+      fetchTenants();
+      setSuccessModal({
+        title: "Organisation supprimée",
+        message: `L'organisation "${tenantToDelete.name}" et toutes ses données ont été supprimées du système.`
+      });
+      setTenantToDelete(null);
+    } catch (error: any) {
+      alert(error.response?.data?.error || "Erreur lors de la suppression.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -140,13 +161,6 @@ export default function SuperAdminDashboard() {
               <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
                 <span>{registerTenantError}</span>
-              </div>
-            )}
-
-            {registerTenantSuccess && (
-              <div className="text-emerald-400 text-xs bg-emerald-950/40 border border-emerald-900/50 p-4 rounded-xl flex items-center gap-2 font-bold">
-                <Check className="h-4.5 w-4.5" />
-                <span>{registerTenantSuccess.message}</span>
               </div>
             )}
 
@@ -214,7 +228,7 @@ export default function SuperAdminDashboard() {
                         <>Voir les statistiques <ChevronDown className="h-4 w-4" /></>
                       )}
                     </button>
-                    <button onClick={() => handleDeleteTenant(tenant.id, tenant.name)} className="text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors p-2 rounded-xl bg-slate-900/60 border border-slate-800/50">
+                    <button onClick={() => handleDeleteTenantClick(tenant.id, tenant.name)} className="text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors p-2 rounded-xl bg-slate-900/60 border border-slate-800/50">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -244,6 +258,98 @@ export default function SuperAdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {tenantToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 text-red-400">
+                <AlertTriangle className="h-8 w-8" />
+              </div>
+              
+              <h3 className="text-xl font-bold text-slate-100 mb-2">Suppression Critique</h3>
+              
+              <p className="text-sm text-slate-400 mb-4">
+                Êtes-vous sûr de vouloir supprimer définitivement <span className="text-slate-200 font-bold">"{tenantToDelete.name}"</span> ?
+              </p>
+              
+              <div className="bg-red-950/40 border border-red-900/50 p-4 rounded-xl text-left w-full mb-6">
+                <p className="text-red-400/90 text-xs leading-relaxed font-medium">
+                  Cette action est <span className="font-bold underline">strictement irréversible</span>. Tous les utilisateurs, activités, et rapports certifiés liés à cette organisation seront immédiatement et définitivement effacés de la base de données.
+                </p>
+              </div>
+
+              <div className="w-full text-left mb-6">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  Veuillez saisir <span className="text-slate-200 font-mono select-none">{tenantToDelete.name}</span> pour confirmer :
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  placeholder="Saisissez le nom ici..."
+                  className="w-full px-4 py-3 rounded-xl glass-input text-sm text-slate-200 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50"
+                  autoComplete="off"
+                />
+              </div>
+              
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setTenantToDelete(null)}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmDeleteTenant}
+                  disabled={isDeleting || deleteConfirmationText !== tenantToDelete.name}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-600/90 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Oui, Supprimer'}
+                </button>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setTenantToDelete(null)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-300"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Global Success Modal */}
+      {successModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-5 border border-emerald-500/20 text-emerald-400">
+                <Check className="h-8 w-8" />
+              </div>
+              
+              <h3 className="text-xl font-bold text-slate-100 mb-2">{successModal.title}</h3>
+              <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+                {successModal.message}
+              </p>
+              
+              <button
+                onClick={() => setSuccessModal(null)}
+                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold transition-all border border-slate-700"
+              >
+                Super, merci !
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
