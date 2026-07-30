@@ -46,9 +46,6 @@ export default function App() {
   const [activitySuccess, setActivitySuccess] = useState(false);
 
   // Generate Report States
-  const [reportTitle, setReportTitle] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [generatedReport, setGeneratedReport] = useState<any | null>(null);
   const [reportEditText, setReportEditText] = useState('');
