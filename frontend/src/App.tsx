@@ -46,6 +46,9 @@ export default function App() {
   const [activitySuccess, setActivitySuccess] = useState(false);
 
   // Generate Report States
+  const [reportPeriod, setReportPeriod] = useState('last_30_days'); // today, this_week, this_month, last_30_days, custom
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [generatedReport, setGeneratedReport] = useState<any | null>(null);
   const [reportEditText, setReportEditText] = useState('');
@@ -181,10 +184,26 @@ export default function App() {
   };
 
   const handleGenerateReport = async () => {
-    // Automatically use the last 30 days
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - 30);
+    let start = new Date();
+    let end = new Date();
+
+    if (reportPeriod === 'today') {
+      // both start and end are today
+    } else if (reportPeriod === 'this_week') {
+      const day = start.getDay() || 7; // Get current day number, converting Sun. to 7
+      start.setDate(start.getDate() - day + 1); // Set to Monday
+    } else if (reportPeriod === 'this_month') {
+      start.setDate(1); // Set to 1st of month
+    } else if (reportPeriod === 'last_30_days') {
+      start.setDate(end.getDate() - 30);
+    } else if (reportPeriod === 'custom') {
+      if (!customStartDate || !customEndDate) {
+        setReportError("Veuillez sélectionner les dates de début et de fin.");
+        return;
+      }
+      start = new Date(customStartDate);
+      end = new Date(customEndDate);
+    }
     
     const formattedEnd = end.toISOString().split('T')[0];
     const formattedStart = start.toISOString().split('T')[0];
@@ -206,7 +225,7 @@ export default function App() {
       setReportEditText(response.data.compiled_content);
     } catch (err: any) {
       console.error(err);
-      setReportError(err.response?.data?.error || "Aucune activité trouvée pour les 30 derniers jours.");
+      setReportError(err.response?.data?.error || "Aucune activité trouvée pour cette période.");
     } finally {
       setIsGeneratingReport(false);
     }
@@ -649,9 +668,47 @@ export default function App() {
               </h2>
 
               <div className="space-y-4 mt-2">
-                <p className="text-xs text-slate-400 mb-6">
-                  Générez instantanément une synthèse IA de toutes vos activités enregistrées au cours des 30 derniers jours. Le titre et les dates seront remplis automatiquement pour vous !
+                <p className="text-xs text-slate-400 mb-4">
+                  Générez instantanément une synthèse IA de vos activités. Choisissez la période ci-dessous. Le titre sera généré automatiquement !
                 </p>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Période</label>
+                  <select
+                    value={reportPeriod}
+                    onChange={(e) => setReportPeriod(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl glass-input text-xs appearance-none"
+                  >
+                    <option value="today">Aujourd'hui</option>
+                    <option value="this_week">Cette Semaine</option>
+                    <option value="this_month">Ce Mois</option>
+                    <option value="last_30_days">30 Derniers Jours</option>
+                    <option value="custom">Période Personnalisée</option>
+                  </select>
+                </div>
+
+                {reportPeriod === 'custom' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Date de début</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Date de fin</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {reportError && (
                   <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
@@ -673,7 +730,7 @@ export default function App() {
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4" />
-                      Générer la synthèse (30 derniers jours)
+                      Générer la synthèse
                     </>
                   )}
                 </button>
