@@ -14,6 +14,7 @@ import {
   Shield,
   Search,
   FileCheck,
+  Loader2,
   Check,
   AlertTriangle,
   Menu,
@@ -25,7 +26,7 @@ import TenantAdminDashboard from './components/TenantAdminDashboard';
 
 export default function App() {
   const { isAuthenticated, user, tenant, tenantSlug, login, logout, initialize } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'activities' | 'generate' | 'archives' | 'admin'>('activities');
+  const [activeTab, setActiveTab] = useState<'activities' | 'generate' | 'archives' | 'admin' | 'team'>('activities');
 
   // Login Form States
   const [slugInput, setSlugInput] = useState('delegation-regionale');
