@@ -8,15 +8,7 @@ use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            if ($request->user() && $request->user()->role === 'SUPERADMIN') {
-                return response()->json(['error' => 'Action non autorisée. Les super administrateurs ne peuvent pas interagir avec les données des organisations.'], 403);
-            }
-            return $next($request);
-        });
-    }
+
 
     /**
      * Display a listing of activities.

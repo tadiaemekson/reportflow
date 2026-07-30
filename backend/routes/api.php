@@ -17,18 +17,21 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
 
-        // Activities logging API
-        Route::get('/activities', [ActivityController::class, 'index']);
-        Route::post('/activities', [ActivityController::class, 'store']);
+        // Standard Tenant Actions (Blocked for SuperAdmins)
+        Route::middleware([\App\Http\Middleware\BlockSuperAdmin::class])->group(function () {
+            // Activities logging API
+            Route::get('/activities', [ActivityController::class, 'index']);
+            Route::post('/activities', [ActivityController::class, 'store']);
 
-        // Reports compilation and lifecycle workflows
-        Route::get('/reports', [ReportController::class, 'index']);
-        Route::get('/reports/{id}', [ReportController::class, 'show']);
-        Route::post('/reports/generate', [ReportController::class, 'generate']);
-        Route::put('/reports/{id}', [ReportController::class, 'update']);
-        Route::post('/reports/{id}/submit', [ReportController::class, 'submit']);
-        Route::post('/reports/{id}/approve', [ReportController::class, 'approve']);
-        Route::post('/reports/{id}/archive', [ReportController::class, 'archive']);
+            // Reports compilation and lifecycle workflows
+            Route::get('/reports', [ReportController::class, 'index']);
+            Route::get('/reports/{id}', [ReportController::class, 'show']);
+            Route::post('/reports/generate', [ReportController::class, 'generate']);
+            Route::put('/reports/{id}', [ReportController::class, 'update']);
+            Route::post('/reports/{id}/submit', [ReportController::class, 'submit']);
+            Route::post('/reports/{id}/approve', [ReportController::class, 'approve']);
+            Route::post('/reports/{id}/archive', [ReportController::class, 'archive']);
+        });
 
         // System administration
         Route::get('/admin/tenants', [\App\Http\Controllers\Api\V1\AdminController::class, 'index']);

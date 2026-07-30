@@ -10,15 +10,7 @@ use Illuminate\Support\Str;
 
 class ReportController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            if ($request->user() && $request->user()->role === 'SUPERADMIN') {
-                return response()->json(['error' => 'Action non autorisée. Les super administrateurs ne peuvent pas interagir avec les données des organisations.'], 403);
-            }
-            return $next($request);
-        });
-    }
+
     /**
      * List all reports.
      */
