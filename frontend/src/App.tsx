@@ -500,7 +500,7 @@ export default function App() {
               </button>
             )}
 
-            {user?.role !== 'SUPERADMIN' && user?.role !== 'ADMIN_TENANT' && (
+            {user?.role !== 'SUPERADMIN' && (
               <>
                 <button
                   onClick={() => { setActiveTab('activities'); setIsMobileMenuOpen(false); }}
