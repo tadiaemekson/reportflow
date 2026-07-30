@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
-import { Shield, Users, Activity, FileText, Trash2, Edit, AlertTriangle, Loader2, Check } from 'lucide-react';
+import { Shield, Users, Activity, FileText, Trash2, Edit, AlertTriangle, Loader2, Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedStats, setExpandedStats] = useState<string[]>([]);
 
   // Register Tenant States
   const [newTenantName, setNewTenantName] = useState('');
@@ -82,6 +83,12 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const toggleStats = (id: string) => {
+    setExpandedStats(prev => 
+      prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="space-y-8">
       {/* Analytics Dashboard */}
@@ -121,29 +128,42 @@ export default function SuperAdminDashboard() {
                       <p className="text-[10px] text-slate-500 font-mono">{tenant.slug}</p>
                     </div>
                   </div>
-                  
-                  <button onClick={() => handleDeleteTenant(tenant.id, tenant.name)} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => toggleStats(tenant.id)} 
+                      className="flex-1 flex items-center justify-center gap-2 bg-slate-900/60 hover:bg-slate-800 transition-colors py-2 rounded-xl text-xs font-semibold text-slate-300 border border-slate-800/50"
+                    >
+                      {expandedStats.includes(tenant.id) ? (
+                        <>Masquer les statistiques <ChevronUp className="h-4 w-4" /></>
+                      ) : (
+                        <>Voir les statistiques <ChevronDown className="h-4 w-4" /></>
+                      )}
+                    </button>
+                    <button onClick={() => handleDeleteTenant(tenant.id, tenant.name)} className="text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors p-2 rounded-xl bg-slate-900/60 border border-slate-800/50">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 mt-2 z-10">
-                  <div className="bg-slate-950/50 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800/30">
-                    <Users className="h-4 w-4 text-emerald-400 mb-1" />
-                    <span className="text-lg font-bold text-slate-200">{tenant.users_count}</span>
-                    <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Utilisateurs</span>
+                {expandedStats.includes(tenant.id) && (
+                  <div className="grid grid-cols-3 gap-2 mt-2 z-10 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="bg-slate-950/50 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800/30">
+                      <Users className="h-4 w-4 text-emerald-400 mb-1" />
+                      <span className="text-lg font-bold text-slate-200">{tenant.users_count}</span>
+                      <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Utilisateurs</span>
+                    </div>
+                    <div className="bg-slate-950/50 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800/30">
+                      <Activity className="h-4 w-4 text-blue-400 mb-1" />
+                      <span className="text-lg font-bold text-slate-200">{tenant.activities_count}</span>
+                      <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Activités</span>
+                    </div>
+                    <div className="bg-slate-950/50 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800/30">
+                      <FileText className="h-4 w-4 text-purple-400 mb-1" />
+                      <span className="text-lg font-bold text-slate-200">{tenant.reports_count}</span>
+                      <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Rapports</span>
+                    </div>
                   </div>
-                  <div className="bg-slate-950/50 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800/30">
-                    <Activity className="h-4 w-4 text-blue-400 mb-1" />
-                    <span className="text-lg font-bold text-slate-200">{tenant.activities_count}</span>
-                    <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Activités</span>
-                  </div>
-                  <div className="bg-slate-950/50 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800/30">
-                    <FileText className="h-4 w-4 text-purple-400 mb-1" />
-                    <span className="text-lg font-bold text-slate-200">{tenant.reports_count}</span>
-                    <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">Rapports</span>
-                  </div>
-                </div>
+                )}
               </div>
             ))}
           </div>
