@@ -183,9 +183,17 @@ export default function App() {
     }
   };
 
-  const handleGenerateReport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reportTitle || !startDate || !endDate) return;
+  const handleGenerateReport = async () => {
+    // Automatically use the last 30 days
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+    
+    const formattedEnd = end.toISOString().split('T')[0];
+    const formattedStart = start.toISOString().split('T')[0];
+    
+    // Auto-generate a title
+    const autoTitle = `Synthèse automatique du ${start.toLocaleDateString('fr-FR')} au ${end.toLocaleDateString('fr-FR')}`;
 
     setIsGeneratingReport(true);
     setReportError('');
@@ -193,15 +201,15 @@ export default function App() {
 
     try {
       const response = await api.post('/reports/generate', {
-        title: reportTitle,
-        period_start: startDate,
-        period_end: endDate,
+        title: autoTitle,
+        period_start: formattedStart,
+        period_end: formattedEnd,
       });
       setGeneratedReport(response.data);
       setReportEditText(response.data.compiled_content);
     } catch (err: any) {
       console.error(err);
-      setReportError(err.response?.data?.error || "Aucune activité trouvée pour cette période.");
+      setReportError(err.response?.data?.error || "Aucune activité trouvée pour les 30 derniers jours.");
     } finally {
       setIsGeneratingReport(false);
     }
@@ -643,42 +651,10 @@ export default function App() {
                 Générer un Rapport
               </h2>
 
-              <form onSubmit={handleGenerateReport} className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Titre du rapport</label>
-                  <input
-                    type="text"
-                    value={reportTitle}
-                    onChange={(e) => setReportTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                    placeholder="ex: Synthèse Hebdomadaire Région Sud"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Date de début</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Date de fin</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                      required
-                    />
-                  </div>
-                </div>
+              <div className="space-y-4 mt-2">
+                <p className="text-xs text-slate-400 mb-6">
+                  Générez instantanément une synthèse IA de toutes vos activités enregistrées au cours des 30 derniers jours. Le titre et les dates seront remplis automatiquement pour vous !
+                </p>
 
                 {reportError && (
                   <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
@@ -688,23 +664,23 @@ export default function App() {
                 )}
 
                 <button
-                  type="submit"
+                  onClick={handleGenerateReport}
                   disabled={isGeneratingReport}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-semibold text-xs transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
                 >
                   {isGeneratingReport ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Génération IA...
+                      Analyse et Génération IA en cours...
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4" />
-                      Lancer la synthèse IA
+                      Générer la synthèse (30 derniers jours)
                     </>
                   )}
                 </button>
-              </form>
+              </div>
             </div>
 
             {/* AI synthesis playground */}
