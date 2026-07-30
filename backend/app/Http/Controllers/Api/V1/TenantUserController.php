@@ -74,10 +74,7 @@ class TenantUserController extends Controller
         // Thanks to TenantScoped, they can only find and delete users in their own tenant
         $user = User::findOrFail($id);
         
-        // Delete their activities and reports to avoid foreign key constraints (or rely on cascading)
-        $user->activities()->delete();
-        $user->reports()->delete();
-        
+        // Activities will be deleted via database cascade, but reports will be preserved (foreign key set to null)
         $user->delete();
 
         return response()->json(['message' => 'Utilisateur supprimé avec succès']);

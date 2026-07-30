@@ -249,9 +249,9 @@ export default function TenantAdminDashboard() {
               <h3 className="text-xl font-bold text-slate-100 mb-2">Supprimer l'utilisateur ?</h3>
               
               <p className="text-sm text-slate-400 mb-6">
-                Êtes-vous sûr de vouloir supprimer définitivement <span className="text-slate-200 font-bold">"{userToDelete.name}"</span> ? 
+                Êtes-vous sûr de vouloir supprimer l'accès de <span className="text-slate-200 font-bold">"{userToDelete.name}"</span> ? 
                 <br /><br />
-                <span className="text-red-400/80 text-xs">Cette action est irréversible. Tous ses rapports et activités associés seront également effacés du système.</span>
+                <span className="text-emerald-400/90 text-xs">Ne vous inquiétez pas : tous les rapports générés par cet utilisateur seront conservés dans les archives de l'organisation pour garantir la traçabilité. Seules ses activités non compilées seront effacées.</span>
               </p>
               
               <div className="flex gap-3 w-full">
