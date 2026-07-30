@@ -31,6 +31,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/reports/{id}/archive', [ReportController::class, 'archive']);
 
         // System administration
+        Route::get('/admin/tenants', [\App\Http\Controllers\Api\V1\AdminController::class, 'index']);
         Route::post('/admin/tenants', [\App\Http\Controllers\Api\V1\AdminController::class, 'registerTenant']);
+        Route::put('/admin/tenants/{id}', [\App\Http\Controllers\Api\V1\AdminController::class, 'update']);
+        Route::delete('/admin/tenants/{id}', [\App\Http\Controllers\Api\V1\AdminController::class, 'destroy']);
     });
 });

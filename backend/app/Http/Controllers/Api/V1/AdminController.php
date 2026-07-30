@@ -12,6 +12,61 @@ use Illuminate\Support\Facades\Hash;
 class AdminController extends Controller
 {
     /**
+     * Get all Tenants with usage statistics.
+     */
+    public function index(Request $request)
+    {
+        if ($request->user()->role !== 'SUPERADMIN') {
+            return response()->json(['error' => 'Action non autorisée. Rôle SuperAdmin requis.'], 403);
+        }
+
+        $tenants = Tenant::withCount(['users', 'activities', 'reports'])->get();
+        return response()->json($tenants);
+    }
+
+    /**
+     * Update an existing Tenant.
+     */
+    public function update(Request $request, $id)
+    {
+        if ($request->user()->role !== 'SUPERADMIN') {
+            return response()->json(['error' => 'Action non autorisée. Rôle SuperAdmin requis.'], 403);
+        }
+
+        $tenant = Tenant::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:100|unique:tenants,slug,' . $tenant->id,
+            'logo_url' => 'nullable|string|max:255',
+        ]);
+
+        $tenant->update($request->only('name', 'slug', 'logo_url'));
+
+        return response()->json([
+            'message' => 'Organisation mise à jour avec succès.',
+            'tenant' => $tenant
+        ]);
+    }
+
+    /**
+     * Delete an existing Tenant.
+     */
+    public function destroy(Request $request, $id)
+    {
+        if ($request->user()->role !== 'SUPERADMIN') {
+            return response()->json(['error' => 'Action non autorisée. Rôle SuperAdmin requis.'], 403);
+        }
+
+        $tenant = Tenant::findOrFail($id);
+        $tenant->delete();
+
+        return response()->json([
+            'message' => 'Organisation supprimée avec succès.'
+        ]);
+    }
+
+    /**
      * Register a new Tenant (Delegation/Service) and its initial Admin User.
      */
     public function registerTenant(Request $request)

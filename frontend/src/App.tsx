@@ -1,18 +1,15 @@
-"use client";
+
 
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '../store/useAuthStore';
-import api from '../lib/api';
+import { useAuthStore } from './store/useAuthStore';
+import api from './lib/api';
 import {
   Lock,
-  FileText,
   PlusCircle,
   Calendar,
   LogOut,
   User as UserIcon,
   Building,
-  CheckCircle,
-  Clock,
   Sparkles,
   Shield,
   Search,
@@ -21,8 +18,9 @@ import {
   Check,
   AlertTriangle
 } from 'lucide-react';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 
-export default function Home() {
+export default function App() {
   const { isAuthenticated, user, tenant, tenantSlug, login, logout, initialize } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'activities' | 'generate' | 'archives' | 'admin'>('activities');
 
@@ -64,62 +62,13 @@ export default function Home() {
   // Search/Filter Archives
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Register Tenant States
-  const [newTenantName, setNewTenantName] = useState('');
-  const [newTenantSlug, setNewTenantSlug] = useState('');
-  const [newTenantLogoUrl, setNewTenantLogoUrl] = useState('');
-  const [newTenantAdminName, setNewTenantAdminName] = useState('');
-  const [newTenantAdminEmail, setNewTenantAdminEmail] = useState('');
-  const [newTenantAdminPassword, setNewTenantAdminPassword] = useState('TempPassword#2026!');
-  const [isRegisteringTenant, setIsRegisteringTenant] = useState(false);
-  const [registerTenantError, setRegisterTenantError] = useState('');
-  const [registerTenantSuccess, setRegisterTenantSuccess] = useState<any | null>(null);
-
-  const handleRegisterTenant = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTenantName || !newTenantSlug || !newTenantAdminName || !newTenantAdminEmail || !newTenantAdminPassword) {
-      setRegisterTenantError("Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
-
-    setIsRegisteringTenant(true);
-    setRegisterTenantError('');
-    setRegisterTenantSuccess(null);
-
-    try {
-      const response = await api.post('/admin/tenants', {
-        name: newTenantName,
-        slug: newTenantSlug,
-        logo_url: newTenantLogoUrl || null,
-        admin_name: newTenantAdminName,
-        admin_email: newTenantAdminEmail,
-        admin_password: newTenantAdminPassword,
-      });
-
-      setRegisterTenantSuccess(response.data);
-      // Clear inputs
-      setNewTenantName('');
-      setNewTenantSlug('');
-      setNewTenantLogoUrl('');
-      setNewTenantAdminName('');
-      setNewTenantAdminEmail('');
-      setNewTenantAdminPassword('TempPassword#2026!');
-    } catch (err: any) {
-      console.error(err);
-      setRegisterTenantError(
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Erreur lors de la création du service."
-      );
-    } finally {
-      setIsRegisteringTenant(false);
-    }
-  };
-
   // Initialize session
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    if (user?.role === 'SUPERADMIN') {
+      setActiveTab('admin');
+    }
+  }, [initialize, user?.role]);
 
   // Load data when authenticated
   useEffect(() => {
@@ -174,6 +123,11 @@ export default function Home() {
 
       const { access_token, user: userData, tenant: tenantData } = response.data;
       login(access_token, userData, tenantData, slugInput);
+      if (userData.role === 'SUPERADMIN') {
+        setActiveTab('admin');
+      } else {
+        setActiveTab('activities');
+      }
     } catch (err: any) {
       console.error(err);
       setLoginError(
@@ -476,41 +430,45 @@ export default function Home() {
 
           {/* Nav items */}
           <nav className="space-y-1.5">
-            <button
-              onClick={() => setActiveTab('activities')}
-              className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
-                activeTab === 'activities'
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
-                  : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
-              }`}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Saisie Activités
-            </button>
+            {user?.role !== 'SUPERADMIN' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('activities')}
+                  className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
+                    activeTab === 'activities'
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
+                      : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                  }`}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Saisie Activités
+                </button>
 
-            <button
-              onClick={() => setActiveTab('generate')}
-              className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
-                activeTab === 'generate'
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
-                  : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
-              }`}
-            >
-              <Sparkles className="h-4 w-4" />
-              Générateur IA
-            </button>
+                <button
+                  onClick={() => setActiveTab('generate')}
+                  className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
+                    activeTab === 'generate'
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
+                      : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                  }`}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Générateur IA
+                </button>
 
-            <button
-              onClick={() => setActiveTab('archives')}
-              className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
-                activeTab === 'archives'
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
-                  : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
-              }`}
-            >
-              <Lock className="h-4 w-4" />
-              Archives Immuables
-            </button>
+                <button
+                  onClick={() => setActiveTab('archives')}
+                  className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
+                    activeTab === 'archives'
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
+                      : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                  }`}
+                >
+                  <Lock className="h-4 w-4" />
+                  Archives Immuables
+                </button>
+              </>
+            )}
 
             {user?.role === 'SUPERADMIN' && (
               <button
@@ -954,133 +912,7 @@ export default function Home() {
         )}
 
         {activeTab === 'admin' && user?.role === 'SUPERADMIN' && (
-          <div className="max-w-2xl mx-auto glass-panel rounded-3xl p-8 space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5">
-                <Shield className="h-5.5 w-5.5 text-blue-400" />
-                Administration Globale - Enregistrer une Délégation / Service
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">Créez un nouveau locataire (tenant) multi-tenant et configurez son compte administrateur initial.</p>
-            </div>
-
-            <form onSubmit={handleRegisterTenant} className="space-y-6">
-              {/* Tenant Section */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest pb-1.5 border-b border-slate-900">
-                  1. Informations sur le Service / Délégation
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom de l'Organisation</label>
-                    <input
-                      type="text"
-                      value={newTenantName}
-                      onChange={(e) => setNewTenantName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                      placeholder="ex: Délégation Régionale Nord"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Slug du sous-domaine</label>
-                    <input
-                      type="text"
-                      value={newTenantSlug}
-                      onChange={(e) => setNewTenantSlug(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                      placeholder="ex: delegation-nord"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">URL du Logo (Optionnel)</label>
-                  <input
-                    type="text"
-                    value={newTenantLogoUrl}
-                    onChange={(e) => setNewTenantLogoUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                    placeholder="ex: https://images.unsplash.com/photo..."
-                  />
-                </div>
-              </div>
-
-              {/* Admin User Section */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest pb-1.5 border-b border-slate-900">
-                  2. Identifiants de l'Administrateur du Service
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom Complet</label>
-                    <input
-                      type="text"
-                      value={newTenantAdminName}
-                      onChange={(e) => setNewTenantAdminName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                      placeholder="ex: Marie Curie"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Adresse Email Admin</label>
-                    <input
-                      type="email"
-                      value={newTenantAdminEmail}
-                      onChange={(e) => setNewTenantAdminEmail(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                      placeholder="ex: admin.nord@reportflow.io"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Mot de passe initial</label>
-                  <input
-                    type="text"
-                    value={newTenantAdminPassword}
-                    onChange={(e) => setNewTenantAdminPassword(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                    required
-                  />
-                </div>
-              </div>
-
-              {registerTenantError && (
-                <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>{registerTenantError}</span>
-                </div>
-              )}
-
-              {registerTenantSuccess && (
-                <div className="text-emerald-400 text-xs bg-emerald-950/40 border border-emerald-900/50 p-4 rounded-xl space-y-2">
-                  <div className="flex items-center gap-2 font-bold">
-                    <Check className="h-4.5 w-4.5" />
-                    <span>{registerTenantSuccess.message}</span>
-                  </div>
-                  <p className="text-[10px] text-slate-300">
-                    L'organisation <strong>{registerTenantSuccess.tenant.name}</strong> a été enregistrée. L'administrateur peut désormais se connecter sur le slug <code>{registerTenantSuccess.tenant.slug}</code> avec l'email <code>{registerTenantSuccess.admin.email}</code>.
-                  </p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isRegisteringTenant}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-semibold text-xs transition-all flex items-center justify-center gap-2"
-              >
-                {isRegisteringTenant ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Création en cours...
-                  </>
-                ) : (
-                  "Enregistrer et Créer la Délégation"
-                )}
-              </button>
-            </form>
-          </div>
+          <SuperAdminDashboard />
         )}
       </main>
     </div>
