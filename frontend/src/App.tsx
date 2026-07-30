@@ -679,11 +679,11 @@ export default function App() {
                     onChange={(e) => setReportPeriod(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl glass-input text-xs appearance-none"
                   >
-                    <option value="today">Aujourd'hui</option>
-                    <option value="this_week">Cette Semaine</option>
-                    <option value="this_month">Ce Mois</option>
-                    <option value="last_30_days">30 Derniers Jours</option>
-                    <option value="custom">Période Personnalisée</option>
+                    <option value="today" className="bg-slate-900 text-slate-100 py-1">Aujourd'hui</option>
+                    <option value="this_week" className="bg-slate-900 text-slate-100 py-1">Cette Semaine</option>
+                    <option value="this_month" className="bg-slate-900 text-slate-100 py-1">Ce Mois</option>
+                    <option value="last_30_days" className="bg-slate-900 text-slate-100 py-1">30 Derniers Jours</option>
+                    <option value="custom" className="bg-slate-900 text-slate-100 py-1">Période Personnalisée</option>
                   </select>
                 </div>
 
