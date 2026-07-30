@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../lib/api';
-import { Shield, Users, Activity, FileText, Trash2, Edit, AlertTriangle, Loader2, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Users, Activity, FileText, Trash2, Edit, AlertTriangle, Loader2, Check, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedStats, setExpandedStats] = useState<string[]>([]);
+  const [isRegisterFormOpen, setIsRegisterFormOpen] = useState(false);
 
   // Register Tenant States
   const [newTenantName, setNewTenantName] = useState('');
@@ -91,9 +92,74 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Add New Tenant */}
+      {isRegisterFormOpen && (
+        <div className="glass-panel rounded-3xl p-8 relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
+          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5 mb-6">
+            <Edit className="h-5.5 w-5.5 text-blue-400" />
+            Enregistrer une nouvelle Organisation
+          </h2>
+          <form onSubmit={handleRegisterTenant} className="space-y-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom de l'Organisation</label>
+                  <input type="text" value={newTenantName} onChange={(e) => setNewTenantName(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" placeholder="ex: Délégation Régionale Nord" required />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Slug du sous-domaine</label>
+                  <input type="text" value={newTenantSlug} onChange={(e) => setNewTenantSlug(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" placeholder="ex: delegation-nord" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">URL du Logo (Optionnel)</label>
+                <input type="text" value={newTenantLogoUrl} onChange={(e) => setNewTenantLogoUrl(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" placeholder="ex: https://images.unsplash.com/photo..." />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest pb-1.5 border-b border-slate-900">Identifiants de l'Administrateur</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom Complet</label>
+                  <input type="text" value={newTenantAdminName} onChange={(e) => setNewTenantAdminName(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" required />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Adresse Email</label>
+                  <input type="email" value={newTenantAdminEmail} onChange={(e) => setNewTenantAdminEmail(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Mot de passe initial</label>
+                <input type="text" value={newTenantAdminPassword} onChange={(e) => setNewTenantAdminPassword(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" required />
+              </div>
+            </div>
+
+            {registerTenantError && (
+              <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                <span>{registerTenantError}</span>
+              </div>
+            )}
+
+            {registerTenantSuccess && (
+              <div className="text-emerald-400 text-xs bg-emerald-950/40 border border-emerald-900/50 p-4 rounded-xl flex items-center gap-2 font-bold">
+                <Check className="h-4.5 w-4.5" />
+                <span>{registerTenantSuccess.message}</span>
+              </div>
+            )}
+
+            <button type="submit" disabled={isRegisteringTenant} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-semibold text-xs transition-all flex items-center justify-center gap-2">
+              {isRegisteringTenant ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enregistrer et Créer"}
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* Analytics Dashboard */}
       <div className="glass-panel rounded-3xl p-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5">
               <Shield className="h-5.5 w-5.5 text-blue-400" />
@@ -101,15 +167,24 @@ export default function SuperAdminDashboard() {
             </h2>
             <p className="text-xs text-slate-400 mt-1">Supervisez l'utilisation de la plateforme pour toutes les organisations.</p>
           </div>
-          <div className="bg-slate-900/50 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-800">
-            {tenants.length} Organisation(s)
+          <div className="flex items-center gap-3">
+            <div className="bg-slate-900/50 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-800">
+              {tenants.length} Organisation(s)
+            </div>
+            <button
+              onClick={() => setIsRegisterFormOpen(!isRegisterFormOpen)}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
+            >
+              {isRegisterFormOpen ? <ChevronUp className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              {isRegisterFormOpen ? 'Fermer le formulaire' : 'Nouvelle Organisation'}
+            </button>
           </div>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-blue-400" /></div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {tenants.map(tenant => (
               <div key={tenant.id} className="bg-slate-900/40 border border-slate-800/50 p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -168,117 +243,6 @@ export default function SuperAdminDashboard() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Registration Form */}
-      <div className="max-w-3xl mx-auto glass-panel rounded-3xl p-8 space-y-6">
-        <div>
-          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5">
-            <Edit className="h-5.5 w-5.5 text-blue-400" />
-            Enregistrer une nouvelle Organisation
-          </h2>
-        </div>
-
-        <form onSubmit={handleRegisterTenant} className="space-y-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom de l'Organisation</label>
-                <input
-                  type="text"
-                  value={newTenantName}
-                  onChange={(e) => setNewTenantName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                  placeholder="ex: Délégation Régionale Nord"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Slug du sous-domaine</label>
-                <input
-                  type="text"
-                  value={newTenantSlug}
-                  onChange={(e) => setNewTenantSlug(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                  placeholder="ex: delegation-nord"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">URL du Logo (Optionnel)</label>
-              <input
-                type="text"
-                value={newTenantLogoUrl}
-                onChange={(e) => setNewTenantLogoUrl(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                placeholder="ex: https://images.unsplash.com/photo..."
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest pb-1.5 border-b border-slate-900">
-              Identifiants de l'Administrateur du Service
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom Complet</label>
-                <input
-                  type="text"
-                  value={newTenantAdminName}
-                  onChange={(e) => setNewTenantAdminName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Adresse Email</label>
-                <input
-                  type="email"
-                  value={newTenantAdminEmail}
-                  onChange={(e) => setNewTenantAdminEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Mot de passe initial</label>
-              <input
-                type="text"
-                value={newTenantAdminPassword}
-                onChange={(e) => setNewTenantAdminPassword(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl glass-input text-xs"
-                required
-              />
-            </div>
-          </div>
-
-          {registerTenantError && (
-            <div className="text-red-400 text-xs bg-red-950/40 border border-red-900/50 p-3 rounded-lg flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              <span>{registerTenantError}</span>
-            </div>
-          )}
-
-          {registerTenantSuccess && (
-            <div className="text-emerald-400 text-xs bg-emerald-950/40 border border-emerald-900/50 p-4 rounded-xl space-y-2">
-              <div className="flex items-center gap-2 font-bold">
-                <Check className="h-4.5 w-4.5" />
-                <span>{registerTenantSuccess.message}</span>
-              </div>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isRegisteringTenant}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-semibold text-xs transition-all flex items-center justify-center gap-2"
-          >
-            {isRegisteringTenant ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enregistrer et Créer"}
-          </button>
-        </form>
       </div>
     </div>
   );

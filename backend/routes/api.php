@@ -19,6 +19,11 @@ Route::prefix('v1')->group(function () {
 
         // Standard Tenant Actions (Blocked for SuperAdmins)
         Route::middleware([\App\Http\Middleware\BlockSuperAdmin::class])->group(function () {
+            // Organization Team Management
+            Route::get('/users', [\App\Http\Controllers\Api\V1\TenantUserController::class, 'index']);
+            Route::post('/users', [\App\Http\Controllers\Api\V1\TenantUserController::class, 'store']);
+            Route::delete('/users/{id}', [\App\Http\Controllers\Api\V1\TenantUserController::class, 'destroy']);
+
             // Activities logging API
             Route::get('/activities', [ActivityController::class, 'index']);
             Route::post('/activities', [ActivityController::class, 'store']);

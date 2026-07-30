@@ -14,13 +14,14 @@ import {
   Shield,
   Search,
   FileCheck,
-  Loader2,
   Check,
   AlertTriangle,
   Menu,
-  X
+  X,
+  Users
 } from 'lucide-react';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
+import TenantAdminDashboard from './components/TenantAdminDashboard';
 
 export default function App() {
   const { isAuthenticated, user, tenant, tenantSlug, login, logout, initialize } = useAuthStore();
@@ -484,7 +485,21 @@ export default function App() {
 
           {/* Nav items */}
           <nav className="space-y-1.5">
-            {user?.role !== 'SUPERADMIN' && (
+            {user?.role === 'ADMIN_TENANT' && (
+              <button
+                onClick={() => { setActiveTab('team'); setIsMobileMenuOpen(false); }}
+                className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
+                  activeTab === 'team'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/10'
+                    : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                Gestion de l'Équipe
+              </button>
+            )}
+
+            {user?.role !== 'SUPERADMIN' && user?.role !== 'ADMIN_TENANT' && (
               <>
                 <button
                   onClick={() => { setActiveTab('activities'); setIsMobileMenuOpen(false); }}
@@ -893,6 +908,10 @@ export default function App() {
               )}
             </div>
           </div>
+        )}
+
+        {activeTab === 'team' && (
+          <TenantAdminDashboard />
         )}
 
         {activeTab === 'archives' && (
