@@ -16,7 +16,9 @@ import {
   FileCheck,
   Loader2,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Menu,
+  X
 } from 'lucide-react';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 
@@ -30,6 +32,7 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState('password');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // App States
   const [activities, setActivities] = useState<any[]>([]);
@@ -415,12 +418,39 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row relative">
+      {/* Mobile Top Header */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 sticky top-0 z-30">
+        <div className="flex items-center gap-2">
+          <img src="/logo.jpg" alt="ReportFlow" className="h-7 w-7 rounded-lg object-cover border border-slate-800" />
+          <span className="font-extrabold text-xs tracking-wider bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">REPORTFLOW</span>
+        </div>
+        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-300 hover:text-white transition-colors">
+          <Menu className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* Overlay for mobile when menu is open */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar navigation */}
-      <aside className="w-full md:w-64 bg-slate-950/80 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-900 flex flex-col justify-between shrink-0">
-        <div className="p-6">
-          {/* App Branding Row */}
-          <div className="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-900">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-slate-950/95 backdrop-blur-xl border-r border-slate-900 flex flex-col justify-between shrink-0 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:w-64 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 overflow-y-auto">
+          {/* Close button for mobile */}
+          <button 
+            className="md:hidden absolute top-5 right-5 text-slate-500 hover:text-slate-300 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          {/* App Branding Row (Desktop Only) */}
+          <div className="hidden md:flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-900">
             <img src="/logo.jpg" alt="ReportFlow Logo" className="h-7 w-7 rounded-lg object-cover border border-slate-800" />
             <span className="font-extrabold text-xs tracking-wider bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">REPORTFLOW</span>
           </div>
@@ -457,7 +487,7 @@ export default function App() {
             {user?.role !== 'SUPERADMIN' && (
               <>
                 <button
-                  onClick={() => setActiveTab('activities')}
+                  onClick={() => { setActiveTab('activities'); setIsMobileMenuOpen(false); }}
                   className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
                     activeTab === 'activities'
                       ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
@@ -469,7 +499,7 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('generate')}
+                  onClick={() => { setActiveTab('generate'); setIsMobileMenuOpen(false); }}
                   className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
                     activeTab === 'generate'
                       ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
@@ -481,7 +511,7 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('archives')}
+                  onClick={() => { setActiveTab('archives'); setIsMobileMenuOpen(false); }}
                   className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
                     activeTab === 'archives'
                       ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
@@ -496,7 +526,7 @@ export default function App() {
 
             {user?.role === 'SUPERADMIN' && (
               <button
-                onClick={() => setActiveTab('admin')}
+                onClick={() => { setActiveTab('admin'); setIsMobileMenuOpen(false); }}
                 className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
                   activeTab === 'admin'
                     ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/10'
