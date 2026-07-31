@@ -18,11 +18,18 @@ export default function SuperAdminDashboard() {
   const [isRegisteringTenant, setIsRegisteringTenant] = useState(false);
   const [registerTenantError, setRegisterTenantError] = useState('');
 
-  // Modals States
+  // Modals & Edit States
   const [successModal, setSuccessModal] = useState<{title: string, message: string} | null>(null);
   const [tenantToDelete, setTenantToDelete] = useState<{id: string, name: string} | null>(null);
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Edit Tenant States
+  const [editingTenant, setEditingTenant] = useState<any | null>(null);
+  const [editTenantName, setEditTenantName] = useState('');
+  const [editTenantSlug, setEditTenantSlug] = useState('');
+  const [editTenantLogo, setEditTenantLogo] = useState<File | null>(null);
+  const [isUpdatingTenant, setIsUpdatingTenant] = useState(false);
 
   const fetchTenants = async () => {
     try {
@@ -92,21 +99,62 @@ export default function SuperAdminDashboard() {
     setDeleteConfirmationText('');
   };
 
-  const confirmDeleteTenant = async () => {
-    if (!tenantToDelete || deleteConfirmationText !== tenantToDelete.name) return;
+  const handleConfirmDeleteTenant = async () => {
+    if (!tenantToDelete) return;
     setIsDeleting(true);
     try {
       await api.delete(`/admin/tenants/${tenantToDelete.id}`);
       fetchTenants();
       setSuccessModal({
         title: "Organisation supprimée",
-        message: `L'organisation "${tenantToDelete.name}" et toutes ses données ont été supprimées du système.`
+        message: `L'organisation "${tenantToDelete.name}" a été définitivement effacée.`
       });
       setTenantToDelete(null);
+      setDeleteConfirmationText('');
     } catch (error: any) {
       alert(error.response?.data?.error || "Erreur lors de la suppression.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const openEditModal = (tenant: any) => {
+    setEditingTenant(tenant);
+    setEditTenantName(tenant.name);
+    setEditTenantSlug(tenant.slug);
+    setEditTenantLogo(null);
+  };
+
+  const handleUpdateTenant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTenant || !editTenantName || !editTenantSlug) return;
+    setIsUpdatingTenant(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('_method', 'PUT'); // Laravel method spoofing for multipart/form-data
+      formData.append('name', editTenantName);
+      formData.append('slug', editTenantSlug);
+      if (editTenantLogo) {
+        formData.append('logo', editTenantLogo);
+      }
+
+      await api.post(`/admin/tenants/${editingTenant.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setSuccessModal({
+        title: "Organisation mise à jour",
+        message: `Les informations de ${editTenantName} ont été enregistrées.`
+      });
+      
+      setEditingTenant(null);
+      fetchTenants();
+    } catch (error: any) {
+      console.error(error);
+      alert(error.response?.data?.message || "Erreur lors de la mise à jour.");
+    } finally {
+      setIsUpdatingTenant(false);
     }
   };
 
@@ -243,6 +291,9 @@ export default function SuperAdminDashboard() {
                         <>Voir les statistiques <ChevronDown className="h-4 w-4" /></>
                       )}
                     </button>
+                    <button onClick={() => openEditModal(tenant)} className="text-slate-500 hover:text-blue-400 hover:bg-blue-950/40 transition-colors p-2 rounded-xl bg-slate-900/60 border border-slate-800/50">
+                      <Edit className="h-4 w-4" />
+                    </button>
                     <button onClick={() => handleDeleteTenantClick(tenant.id, tenant.name)} className="text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors p-2 rounded-xl bg-slate-900/60 border border-slate-800/50">
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -361,6 +412,73 @@ export default function SuperAdminDashboard() {
               >
                 Super, merci !
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Tenant Modal */}
+      {editingTenant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10">
+              <h2 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
+                <Edit className="h-5 w-5 text-blue-400" />
+                Modifier l'Organisation
+              </h2>
+              
+              <form onSubmit={handleUpdateTenant} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nom de l'Organisation</label>
+                  <input
+                    type="text"
+                    value={editTenantName}
+                    onChange={(e) => setEditTenantName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Slug du sous-domaine</label>
+                  <input
+                    type="text"
+                    value={editTenantSlug}
+                    onChange={(e) => setEditTenantSlug(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nouveau Logo (Optionnel)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setEditTenantLogo(e.target.files ? e.target.files[0] : null)}
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-slate-200 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer"
+                  />
+                  {editTenantLogo && (
+                    <p className="text-[10px] text-emerald-400 mt-1.5 font-mono truncate">Fichier: {editTenantLogo.name}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setEditingTenant(null)}
+                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdatingTenant}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-sm text-white transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                  >
+                    {isUpdatingTenant ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enregistrer"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
