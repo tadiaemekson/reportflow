@@ -22,6 +22,11 @@ class ReportController extends Controller
             $query->where('status', $request->status);
         }
 
+        $user = $request->user();
+        if ($user->role !== 'ADMIN_TENANT' && $user->role !== 'MANAGER') {
+            $query->where('generated_by', $user->id);
+        }
+
         $reports = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json($reports);
@@ -47,9 +52,14 @@ class ReportController extends Controller
             'period_end' => 'required|date',
         ]);
 
-        $activities = Activity::whereBetween('activity_date', [$request->period_start, $request->period_end])
-            ->orderBy('activity_date', 'asc')
-            ->get();
+        $user = $request->user();
+        $query = Activity::whereBetween('activity_date', [$request->period_start, $request->period_end]);
+
+        if ($user->role !== 'ADMIN_TENANT' && $user->role !== 'MANAGER') {
+            $query->where('user_id', $user->id);
+        }
+
+        $activities = $query->orderBy('activity_date', 'asc')->get();
 
         if ($activities->isEmpty()) {
             return response()->json([
