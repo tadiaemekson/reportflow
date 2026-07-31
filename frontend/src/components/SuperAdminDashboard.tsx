@@ -371,7 +371,7 @@ export default function SuperAdminDashboard() {
                   Annuler
                 </button>
                 <button
-                  onClick={confirmDeleteTenant}
+                  onClick={handleConfirmDeleteTenant}
                   disabled={isDeleting || deleteConfirmationText !== tenantToDelete.name}
                   className="flex-1 py-3 px-4 rounded-xl bg-red-600/90 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
