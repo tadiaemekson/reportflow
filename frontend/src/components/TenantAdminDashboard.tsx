@@ -13,6 +13,7 @@ export default function TenantAdminDashboard() {
   const [newUserRole, setNewUserRole] = useState('DELEGATE');
   const [isRegisteringUser, setIsRegisteringUser] = useState(false);
   const [registerUserError, setRegisterUserError] = useState('');
+  const [isRegisterFormOpen, setIsRegisterFormOpen] = useState(false);
 
   // Modals States
   const [successModal, setSuccessModal] = useState<{title: string, message: string} | null>(null);
@@ -55,12 +56,15 @@ export default function TenantAdminDashboard() {
       setSuccessModal({
         title: "Membre ajouté avec succès",
         message: response.data.message || `L'utilisateur ${newUserName} a été ajouté à votre équipe.`
-      });
-      
       setNewUserName('');
       setNewUserEmail('');
       setNewUserPassword('Personnel#2026!');
       setNewUserRole('DELEGATE');
+      setIsRegisterFormOpen(false);
+      setSuccessModal({
+        title: "Membre ajouté avec succès",
+        message: response.data.message || `L'utilisateur ${newUserName} a été ajouté à votre équipe.`
+      });
       
       fetchUsers();
     } catch (error: any) {
@@ -105,8 +109,17 @@ export default function TenantAdminDashboard() {
             </h2>
             <p className="text-xs text-slate-400 mt-1">Gérez le personnel autorisé à utiliser l'application pour votre organisation.</p>
           </div>
-          <div className="bg-slate-900/50 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-800">
-            {users.length} Utilisateur(s)
+          <div className="flex items-center gap-4">
+            <div className="bg-slate-900/50 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-800">
+              {users.length} Utilisateur(s)
+            </div>
+            <button
+              onClick={() => setIsRegisterFormOpen(!isRegisterFormOpen)}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
+            >
+              {isRegisterFormOpen ? <X className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+              {isRegisterFormOpen ? 'Fermer le formulaire' : 'Ajouter un Membre'}
+            </button>
           </div>
         </div>
 
@@ -152,7 +165,8 @@ export default function TenantAdminDashboard() {
       </div>
 
       {/* Add New User */}
-      <div className="glass-panel rounded-3xl p-8 relative overflow-hidden">
+      {isRegisterFormOpen && (
+      <div className="glass-panel rounded-3xl p-8 relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
         
         <div className="relative z-10">
@@ -235,6 +249,7 @@ export default function TenantAdminDashboard() {
           </form>
         </div>
       </div>
+      )}
 
       {/* Custom Delete Confirmation Modal */}
       {userToDelete && (
