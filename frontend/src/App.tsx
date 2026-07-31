@@ -19,7 +19,10 @@ import {
   AlertTriangle,
   Menu,
   X,
-  Users
+  Users,
+  UploadCloud,
+  File as FileIcon,
+  Video
 } from 'lucide-react';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import TenantAdminDashboard from './components/TenantAdminDashboard';
@@ -42,11 +45,12 @@ export default function App() {
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [isLoadingReports, setIsLoadingReports] = useState(false);
 
-  // Log Activity States
+  // Saisie Activités States
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState('Infrastructure');
-  const [newContent, setNewContent] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newContent, setNewContent] = useState('');
+  const [newAttachments, setNewAttachments] = useState<File[]>([]);
   const [isSubmittingActivity, setIsSubmittingActivity] = useState(false);
   const [activitySuccess, setActivitySuccess] = useState(false);
 
@@ -168,15 +172,23 @@ export default function App() {
     setActivitySuccess(false);
 
     try {
-      await api.post('/activities', {
-        title: newTitle,
-        category: newCategory,
-        content: newContent,
-        activity_date: newDate,
+      const formData = new FormData();
+      formData.append('title', newTitle);
+      formData.append('category', newCategory);
+      formData.append('content', newContent);
+      formData.append('activity_date', newDate);
+      
+      newAttachments.forEach((file) => {
+        formData.append('attachments[]', file);
+      });
+
+      await api.post('/activities', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       setNewTitle('');
       setNewContent('');
+      setNewAttachments([]);
       setActivitySuccess(true);
       fetchActivities();
 
@@ -571,9 +583,9 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-10 max-h-screen overflow-y-auto">
         {activeTab === 'activities' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="space-y-8">
             {/* Saisie d'Activités Form */}
-            <div className="lg:col-span-1 glass-panel rounded-3xl p-6">
+            <div className="glass-panel rounded-3xl p-8">
               <h2 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
                 <PlusCircle className="h-5 w-5 text-blue-400" />
                 Saisir une activité
@@ -625,11 +637,44 @@ export default function App() {
                   <textarea
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 rounded-xl glass-input text-xs resize-none"
+                    rows={6}
+                    className="w-full px-4 py-3 rounded-xl glass-input text-sm resize-none"
                     placeholder="Saisissez les faits marquants, avancements, incidents..."
                     required
                   />
+                </div>
+
+                {/* Drag and Drop Zone */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Pièces Jointes (Images, Vidéos, Documents)</label>
+                  <div className="relative group">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setNewAttachments(Array.from(e.target.files));
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="border-2 border-dashed border-slate-700/50 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all rounded-2xl p-8 text-center bg-slate-900/30">
+                      <UploadCloud className="h-10 w-10 text-slate-500 mx-auto mb-3 group-hover:text-cyan-400 transition-colors" />
+                      <p className="text-sm font-bold text-slate-300 mb-1">Cliquez ou glissez-déposez vos fichiers ici</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">Taille Max: 100MB par fichier</p>
+                      
+                      {newAttachments.length > 0 && (
+                        <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                          {newAttachments.map((file, index) => (
+                            <div key={index} className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                              {file.type.startsWith('video') ? <Video className="h-3.5 w-3.5 text-blue-400" /> : <FileIcon className="h-3.5 w-3.5 text-blue-400" />}
+                              <span className="text-xs text-slate-200 truncate max-w-[150px]">{file.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {activitySuccess && (
@@ -642,15 +687,15 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={isSubmittingActivity}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-semibold text-xs transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
                 >
-                  {isSubmittingActivity ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enregistrer"}
+                  {isSubmittingActivity ? <Loader2 className="h-5 w-5 animate-spin" /> : "Enregistrer l'Activité"}
                 </button>
               </form>
             </div>
 
             {/* List of Activities */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="space-y-4">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-cyan-400" />
@@ -684,6 +729,28 @@ export default function App() {
                           </span>
                           <h3 className="font-bold text-sm text-slate-200">{act.title}</h3>
                           <p className="text-xs text-slate-400 mt-2 leading-relaxed whitespace-pre-line">{act.content}</p>
+                          
+                          {/* Display Attachments */}
+                          {act.attachments && act.attachments.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-3">
+                              {act.attachments.map((url: string, index: number) => {
+                                const isImage = url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) != null;
+                                return isImage ? (
+                                  <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="block relative group overflow-hidden rounded-xl border border-slate-700/50 hover:border-cyan-500/50 transition-all">
+                                    <img src={url} alt={`Pièce jointe ${index + 1}`} className="h-20 w-32 object-cover" />
+                                    <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <UploadCloud className="h-4 w-4 text-white" />
+                                    </div>
+                                  </a>
+                                ) : (
+                                  <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 px-4 py-2 rounded-xl border border-slate-700/50 hover:border-cyan-500/50 transition-all group">
+                                    <FileIcon className="h-4 w-4 text-slate-400 group-hover:text-cyan-400" />
+                                    <span className="text-[10px] font-bold text-slate-300 group-hover:text-white uppercase tracking-widest">Document {index + 1}</span>
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                         <div className="text-right shrink-0">
                           <span className="text-[10px] text-slate-500 font-semibold block">

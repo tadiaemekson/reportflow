@@ -11,7 +11,7 @@ export default function SuperAdminDashboard() {
   // Register Tenant States
   const [newTenantName, setNewTenantName] = useState('');
   const [newTenantSlug, setNewTenantSlug] = useState('');
-  const [newTenantLogoUrl, setNewTenantLogoUrl] = useState('');
+  const [newTenantLogo, setNewTenantLogo] = useState<File | null>(null);
   const [newTenantAdminName, setNewTenantAdminName] = useState('');
   const [newTenantAdminEmail, setNewTenantAdminEmail] = useState('');
   const [newTenantAdminPassword, setNewTenantAdminPassword] = useState('TempPassword#2026!');
@@ -50,13 +50,18 @@ export default function SuperAdminDashboard() {
     setRegisterTenantError('');
 
     try {
-      const response = await api.post('/admin/tenants', {
-        name: newTenantName,
-        slug: newTenantSlug,
-        logo_url: newTenantLogoUrl,
-        admin_name: newTenantAdminName,
-        admin_email: newTenantAdminEmail,
-        admin_password: newTenantAdminPassword,
+      const formData = new FormData();
+      formData.append('name', newTenantName);
+      formData.append('slug', newTenantSlug);
+      formData.append('admin_name', newTenantAdminName);
+      formData.append('admin_email', newTenantAdminEmail);
+      formData.append('admin_password', newTenantAdminPassword);
+      if (newTenantLogo) {
+        formData.append('logo', newTenantLogo);
+      }
+
+      const response = await api.post('/admin/tenants', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       setSuccessModal({
@@ -66,7 +71,7 @@ export default function SuperAdminDashboard() {
       
       setNewTenantName('');
       setNewTenantSlug('');
-      setNewTenantLogoUrl('');
+      setNewTenantLogo(null);
       setNewTenantAdminName('');
       setNewTenantAdminEmail('');
       setNewTenantAdminPassword('TempPassword#2026!');
@@ -134,8 +139,18 @@ export default function SuperAdminDashboard() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">URL du Logo (Optionnel)</label>
-                <input type="text" value={newTenantLogoUrl} onChange={(e) => setNewTenantLogoUrl(e.target.value)} className="w-full px-3 py-2 rounded-xl glass-input text-xs" placeholder="ex: https://images.unsplash.com/photo..." />
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Logo de l'Organisation (Optionnel)</label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setNewTenantLogo(e.target.files ? e.target.files[0] : null)}
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-slate-200 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer"
+                  />
+                </div>
+                {newTenantLogo && (
+                  <p className="text-[10px] text-emerald-400 mt-1.5 font-mono truncate">Fichier: {newTenantLogo.name}</p>
+                )}
               </div>
             </div>
 

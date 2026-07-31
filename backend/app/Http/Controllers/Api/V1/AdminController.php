@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -38,10 +39,23 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:100|unique:tenants,slug,' . $tenant->id,
-            'logo_url' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:102400', // 100MB
         ]);
 
-        $tenant->update($request->only('name', 'slug', 'logo_url'));
+        $data = $request->only('name', 'slug');
+
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($tenant->logo_url) {
+                $oldPath = str_replace(asset('storage/'), '', $tenant->logo_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            
+            $path = $request->file('logo')->store('logos', 'public');
+            $data['logo_url'] = asset('storage/' . $path);
+        }
+
+        $tenant->update($data);
 
         return response()->json([
             'message' => 'Organisation mise à jour avec succès.',
@@ -80,17 +94,23 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:100|unique:tenants,slug',
-            'logo_url' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:102400', // 100MB max
             'admin_name' => 'required|string|max:255',
             'admin_email' => 'required|email|max:255|unique:users,email',
             'admin_password' => 'required|string|min:8',
         ]);
 
+        $logoUrl = null;
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('logos', 'public');
+            $logoUrl = asset('storage/' . $path);
+        }
+
         // 3. Create Tenant
         $tenant = Tenant::create([
             'name' => $request->name,
             'slug' => $request->slug,
-            'logo_url' => $request->logo_url,
+            'logo_url' => $logoUrl,
         ]);
 
         // 4. Temporarily switch tenant context to the new tenant to create the admin user

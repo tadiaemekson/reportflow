@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ActivityController extends Controller
 {
@@ -42,11 +43,26 @@ class ActivityController extends Controller
             'category' => 'required|string|max:50',
             'content' => 'required|string',
             'activity_date' => 'required|date',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|max:102400', // max 100MB per file
         ]);
 
-        $activity = Activity::create(array_merge($validated, [
+        $attachmentUrls = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('activities', 'public');
+                $attachmentUrls[] = asset('storage/' . $path);
+            }
+        }
+
+        $activity = Activity::create([
+            'title' => $validated['title'],
+            'category' => $validated['category'],
+            'content' => $validated['content'],
+            'activity_date' => $validated['activity_date'],
+            'attachments' => count($attachmentUrls) > 0 ? $attachmentUrls : null,
             'user_id' => $request->user()->id,
-        ]));
+        ]);
 
         return response()->json($activity, 201);
     }

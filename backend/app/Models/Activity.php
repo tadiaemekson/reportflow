@@ -14,11 +14,13 @@ class Activity extends Model
         'title',
         'category',
         'content',
+        'attachments',
         'activity_date',
     ];
 
     protected $casts = [
         'activity_date' => 'date',
+        'attachments' => 'array',
     ];
 
     public function user()
