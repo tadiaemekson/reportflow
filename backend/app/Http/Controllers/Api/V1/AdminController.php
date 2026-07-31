@@ -52,7 +52,7 @@ class AdminController extends Controller
             }
             
             $path = $request->file('logo')->store('logos', 'public');
-            $data['logo_url'] = '/storage/' . $path;
+            $data['logo_url'] = $request->getSchemeAndHttpHost() . '/storage/' . $path;
         }
 
         $tenant->update($data);
@@ -103,7 +103,7 @@ class AdminController extends Controller
         $logoUrl = null;
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('logos', 'public');
-            $logoUrl = '/storage/' . $path;
+            $logoUrl = $request->getSchemeAndHttpHost() . '/storage/' . $path;
         }
 
         // 3. Create Tenant
