@@ -583,7 +583,7 @@ export default function App() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-6 md:p-10 max-h-screen overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 max-h-screen overflow-y-auto">
         {activeTab === 'activities' && (
           <div className="space-y-8">
             <div className="flex justify-end">

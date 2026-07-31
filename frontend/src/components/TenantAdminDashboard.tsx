@@ -97,8 +97,8 @@ export default function TenantAdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Team Dashboard */}
-      <div className="glass-panel rounded-3xl p-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5">
               <Users className="h-5.5 w-5.5 text-blue-400" />
@@ -106,7 +106,7 @@ export default function TenantAdminDashboard() {
             </h2>
             <p className="text-xs text-slate-400 mt-1">Gérez le personnel autorisé à utiliser l'application pour votre organisation.</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 mt-4 sm:mt-0">
             <div className="bg-slate-900/50 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-800">
               {users.length} Utilisateur(s)
             </div>
@@ -128,24 +128,26 @@ export default function TenantAdminDashboard() {
               <div key={user.id} className="bg-slate-900/40 border border-slate-800/50 p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
-                <div className="flex justify-between items-start z-10">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 z-10">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-blue-400 font-bold">
                       {user.name.charAt(0)}
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-200">{user.name}</h3>
-                      <p className="text-[10px] text-slate-500 font-mono">{user.email}</p>
+                    <div className="min-w-0">
+                      <h3 className="text-xs font-bold text-slate-200 truncate">{user.name}</h3>
+                      <p className="text-[10px] text-slate-500 font-mono truncate">{user.email}</p>
                     </div>
                   </div>
                   
-                  <button onClick={() => handleDeleteUserClick(user.id, user.name)} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-950/40">
+                  <button onClick={() => handleDeleteUserClick(user.id, user.name)} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-950/40 shrink-0">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
-                <div className="z-10 mt-2">
-                   <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${
+                <div className="z-10 mt-1">
+                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${
                       user.role === 'ADMIN_TENANT' 
                         ? 'bg-blue-950/80 text-blue-300 border border-blue-800/40' 
                         : user.role === 'MANAGER'
@@ -163,7 +165,7 @@ export default function TenantAdminDashboard() {
 
       {/* Add New User */}
       {isRegisterFormOpen && (
-      <div className="glass-panel rounded-3xl p-8 relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+      <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
         
         <div className="relative z-10">
