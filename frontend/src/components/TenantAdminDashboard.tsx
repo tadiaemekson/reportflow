@@ -53,9 +53,6 @@ export default function TenantAdminDashboard() {
         role: newUserRole
       });
 
-      setSuccessModal({
-        title: "Membre ajouté avec succès",
-        message: response.data.message || `L'utilisateur ${newUserName} a été ajouté à votre équipe.`
       setNewUserName('');
       setNewUserEmail('');
       setNewUserPassword('Personnel#2026!');
