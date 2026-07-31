@@ -46,6 +46,7 @@ export default function App() {
   const [isLoadingReports, setIsLoadingReports] = useState(false);
 
   // Saisie Activités States
+  const [isActivityFormOpen, setIsActivityFormOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState('Infrastructure');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -189,6 +190,7 @@ export default function App() {
       setNewTitle('');
       setNewContent('');
       setNewAttachments([]);
+      setIsActivityFormOpen(false);
       setActivitySuccess(true);
       fetchActivities();
 
@@ -584,14 +586,32 @@ export default function App() {
       <main className="flex-1 p-6 md:p-10 max-h-screen overflow-y-auto">
         {activeTab === 'activities' && (
           <div className="space-y-8">
-            {/* Saisie d'Activités Form */}
-            <div className="glass-panel rounded-3xl p-8">
-              <h2 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-                <PlusCircle className="h-5 w-5 text-blue-400" />
-                Saisir une activité
-              </h2>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsActivityFormOpen(!isActivityFormOpen)}
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all text-sm"
+              >
+                {isActivityFormOpen ? (
+                  <>
+                    <X className="h-4 w-4" /> Masquer le Formulaire
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="h-4 w-4" /> Saisir une activité
+                  </>
+                )}
+              </button>
+            </div>
 
-              <form onSubmit={handleLogActivity} className="space-y-4">
+            {/* Saisie d'Activités Form */}
+            {isActivityFormOpen && (
+              <div className="glass-panel rounded-3xl p-8 animate-in fade-in slide-in-from-top-4 duration-300">
+                <h2 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                  <PlusCircle className="h-5 w-5 text-blue-400" />
+                  Saisir une activité
+                </h2>
+
+                <form onSubmit={handleLogActivity} className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Intitulé de l'activité</label>
                   <input
@@ -693,6 +713,7 @@ export default function App() {
                 </button>
               </form>
             </div>
+            )}
 
             {/* List of Activities */}
             <div className="space-y-4">
