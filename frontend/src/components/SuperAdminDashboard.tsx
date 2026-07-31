@@ -236,7 +236,7 @@ export default function SuperAdminDashboard() {
 
       {/* Analytics Dashboard */}
       <div className="glass-panel rounded-3xl p-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5">
               <Shield className="h-5.5 w-5.5 text-blue-400" />
@@ -244,7 +244,7 @@ export default function SuperAdminDashboard() {
             </h2>
             <p className="text-xs text-slate-400 mt-1">Supervisez l'utilisation de la plateforme pour toutes les organisations.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 mt-4 sm:mt-0">
             <div className="bg-slate-900/50 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-800">
               {tenants.length} Organisation(s)
             </div>
@@ -266,7 +266,7 @@ export default function SuperAdminDashboard() {
               <div key={tenant.id} className="bg-slate-900/40 border border-slate-800/50 p-5 rounded-2xl flex flex-col gap-4 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
-                <div className="flex justify-between items-start z-10">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 z-10">
                   <div className="flex items-center gap-3">
                     {tenant.logo_url ? (
                       <img src={tenant.logo_url} alt={tenant.name} className="h-10 w-10 rounded-lg object-cover" />
@@ -280,7 +280,7 @@ export default function SuperAdminDashboard() {
                       <p className="text-[10px] text-slate-500 font-mono">{tenant.slug}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <button 
                       onClick={() => toggleStats(tenant.id)} 
                       className="flex-1 flex items-center justify-center gap-2 bg-slate-900/60 hover:bg-slate-800 transition-colors py-2 rounded-xl text-xs font-semibold text-slate-300 border border-slate-800/50"
