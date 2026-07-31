@@ -505,7 +505,7 @@ export default function App() {
                 onClick={() => { setActiveTab('team'); setIsMobileMenuOpen(false); }}
                 className={`w-full py-2.5 px-4 rounded-xl flex items-center gap-3 text-xs font-semibold tracking-wide transition-all ${
                   activeTab === 'team'
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/10'
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/20'
                     : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
                 }`}
               >

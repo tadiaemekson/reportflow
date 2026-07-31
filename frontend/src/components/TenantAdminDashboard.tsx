@@ -100,7 +100,7 @@ export default function TenantAdminDashboard() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2.5">
-              <Users className="h-5.5 w-5.5 text-emerald-400" />
+              <Users className="h-5.5 w-5.5 text-blue-400" />
               Gestion de l'Équipe
             </h2>
             <p className="text-xs text-slate-400 mt-1">Gérez le personnel autorisé à utiliser l'application pour votre organisation.</p>
@@ -111,7 +111,7 @@ export default function TenantAdminDashboard() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-emerald-400" /></div>
+          <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-blue-400" /></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {users.map(user => (
@@ -120,7 +120,7 @@ export default function TenantAdminDashboard() {
                 
                 <div className="flex justify-between items-start z-10">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-emerald-400 font-bold">
+                    <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-blue-400 font-bold">
                       {user.name.charAt(0)}
                     </div>
                     <div>
@@ -140,7 +140,7 @@ export default function TenantAdminDashboard() {
                         ? 'bg-blue-950/80 text-blue-300 border border-blue-800/40' 
                         : user.role === 'MANAGER'
                         ? 'bg-purple-950/80 text-purple-300 border border-purple-800/40'
-                        : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/40'
+                        : 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/40'
                     }`}>
                       {user.role}
                     </span>
@@ -153,11 +153,11 @@ export default function TenantAdminDashboard() {
 
       {/* Add New User */}
       <div className="glass-panel rounded-3xl p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
         
         <div className="relative z-10">
           <h2 className="text-lg font-bold text-slate-100 mb-2 flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-emerald-400" />
+            <UserPlus className="h-5 w-5 text-blue-400" />
             Ajouter un Membre
           </h2>
           <p className="text-xs text-slate-400 mb-6">Créez un nouveau compte pour un agent ou un superviseur.</p>
@@ -223,10 +223,14 @@ export default function TenantAdminDashboard() {
             <button
               type="submit"
               disabled={isRegisteringUser}
-              className="mt-4 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-xl text-xs font-bold tracking-wide transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="py-2.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
             >
-              {isRegisteringUser ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-              {isRegisteringUser ? 'Création en cours...' : 'Créer l\'utilisateur'}
+              {isRegisteringUser ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  Créer l'utilisateur
+                </>
+              )}
             </button>
           </form>
         </div>
