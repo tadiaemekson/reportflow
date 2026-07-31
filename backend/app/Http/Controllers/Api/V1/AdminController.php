@@ -39,7 +39,7 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:100|unique:tenants,slug,' . $tenant->id,
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:102400', // 100MB
+            'logo' => 'nullable|image|max:102400', // 100MB max
         ]);
 
         $data = $request->only('name', 'slug');
@@ -94,7 +94,7 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:100|unique:tenants,slug',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:102400', // 100MB max
+            'logo' => 'nullable|image|max:102400', // 100MB max
             'admin_name' => 'required|string|max:255',
             'admin_email' => 'required|email|max:255|unique:users,email',
             'admin_password' => 'required|string|min:8',
