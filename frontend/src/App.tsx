@@ -82,11 +82,11 @@ export default function App() {
 
   // Load data when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.role !== 'SUPERADMIN') {
       fetchActivities();
       fetchReports();
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated, user?.role, activeTab]);
 
   const fetchActivities = async () => {
     setIsLoadingActivities(true);
