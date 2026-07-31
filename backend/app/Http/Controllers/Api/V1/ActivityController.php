@@ -51,7 +51,7 @@ class ActivityController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('activities', 'public');
-                $attachmentUrls[] = asset('storage/' . $path);
+                $attachmentUrls[] = '/storage/' . $path;
             }
         }
 
